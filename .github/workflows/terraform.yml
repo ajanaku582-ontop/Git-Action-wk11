@@ -81,9 +81,9 @@ jobs:
         if: github.event.inputs.action == 'apply'
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          printf "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
+          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_ed25519_second.pub
+          chmod 600 ~/.ssh/id_ed25519_second.pub
+        #   printf "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
 
       # ---------------- ANSIBLE ----------------
       - name: Install Ansible & jq
