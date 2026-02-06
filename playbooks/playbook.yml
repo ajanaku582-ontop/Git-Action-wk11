@@ -1,0 +1,139 @@
+name: Ansible Deployment new (Java + Nginx)
+
+on:
+  workflow_dispatch:
+    inputs:
+      ansible_ip:
+        description: "Public IP of Ansible node"
+        required: true
+      java_ip:
+        description: "Public IP of Java node"
+        required: true
+      nginx_ip:
+        description: "Public IP of Nginx node"
+        required: true
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create SSH private key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/ec2-key.pem
+          chmod 400 ~/.ssh/ec2-key.pem
+
+      - name: SSH to Ansible node and run Ansible
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/ec2-key.pem \
+              ec2-user@${{ github.event.inputs.ansible_ip }} << 'EOF'
+
+          set -e
+
+          mkdir -p ~/ansible
+          cd ~/ansible
+
+          # -----------------------------
+          # Create inventory file
+          # -----------------------------
+cat << 'INVENTORY' > dev.ini
+[java]
+${{ github.event.inputs.java_ip }}
+
+[nginx]
+${{ github.event.inputs.nginx_ip }}
+
+[all:vars]
+ansible_ssh_private_key_file=~/.ssh/ec2-key.pem
+ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+INVENTORY
+
+cat << 'PLAYBOOK' > playbook.yml
+############################
+# PLAY 1: Install Ansible on Control Node
+############################
+- name: Bootstrap Ansible on control node
+  hosts: localhost
+  become: yes
+
+  tasks:
+    - name: Install Ansible
+      yum:
+        name: ansible
+        state: present
+
+    - name: Verify Ansible is installed
+      command: ansible --version
+      register: ansible_version
+
+    - name: Display Ansible version
+      debug:
+        msg: "{{ ansible_version.stdout }}"
+
+############################
+# PLAY 2: Install Java on Java Server
+############################
+- name: Install Java on Java server
+  hosts: java
+  become: yes
+
+  tasks:
+    - name: Install Java 17 (Amazon Corretto)
+      yum:
+        name: java-17-amazon-corretto
+        state: present
+
+    - name: Verify Java installation
+      command: java -version
+      register: java_version
+      ignore_errors: yes
+
+    - name: Display Java version
+      debug:
+        msg: "{{ java_version.stderr }}"
+
+############################
+# PLAY 3: Install and Configure Nginx
+############################
+- name: Install and configure Nginx on Nginx server
+  hosts: nginx
+  become: yes
+
+  tasks:
+    - name: Install Nginx
+      yum:
+        name: nginx
+        state: present
+
+    - name: Enable and start Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Verify Nginx service status
+      command: systemctl is-active nginx
+      register: nginx_status
+
+    - name: Display Nginx status
+      debug:
+        msg: "Nginx service is {{ nginx_status.stdout }}"
+
+    - name: Test Nginx HTTP response
+      command: curl -I http://localhost
+      register: nginx_test
+      ignore_errors: yes
+
+    - name: Display HTTP test result
+      debug:
+        msg: "{{ nginx_test.stdout }}"
+PLAYBOOK
+
+ansible-playbook -i dev.ini playbook.yml
+
+EOF
