@@ -68,10 +68,14 @@ jobs:
       # ---------------- OUTPUTS ----------------
       - name: Capture Terraform Outputs
         if: github.event.inputs.action == 'apply'
+        id: tf_outputs
         working-directory: terraform
         run: |
-          echo "AMAZON_IPS=$(terraform output -json amazon_linux_ips)" >> $GITHUB_ENV
-          echo "UBUNTU_IPS=$(terraform output -json ubuntu_ips)" >> $GITHUB_ENV
+          terraform output -json amazon_linux_ips > amazon.json
+          terraform output -json ubuntu_ips > ubuntu.json
+
+          echo "AMAZON_IPS=$(cat amazon.json)" >> $GITHUB_ENV
+          echo "UBUNTU_IPS=$(cat ubuntu.json)" >> $GITHUB_ENV
 
       - name: Display Terraform Outputs
         if: github.event.inputs.action == 'apply'
