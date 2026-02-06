@@ -1,7 +1,7 @@
 ---
 - name: Install and start Nginx on Amazon Linux servers
   hosts: amazon
-  become: yes
+  become: true
   remote_user: ec2-user
 
   tasks:
@@ -23,7 +23,7 @@
 
 - name: Install and start Nginx on Ubuntu servers
   hosts: ubuntu
-  become: yes
+  become: true
   remote_user: ubuntu
 
   tasks:
