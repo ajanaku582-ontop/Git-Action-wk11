@@ -81,7 +81,7 @@ jobs:
         if: github.event.inputs.action == 'apply'
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           printf "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
 
