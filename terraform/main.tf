@@ -1,3 +1,14 @@
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
 provider "aws" {
   region = "us-east-2"
 }
@@ -41,38 +52,50 @@ resource "aws_security_group" "server_sg" {
   }
 }
 
-# Ansible Node
-resource "aws_instance" "ansible" {
-  ami                    = var.ami_id
-  instance_type          = "c7i-flex.large"
-  key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.server_sg.id]
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
 
-  tags = {
-    Name = "Ansible-Node"
+  filter {
+    name   = "name"
+    values = ["al2023-ami-*-x86_64"]
   }
 }
 
-# Java Node
-resource "aws_instance" "java" {
-  ami                    = var.ami_id
-  instance_type          = "c7i-flex.large"
-  key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.server_sg.id]
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
 
-  tags = {
-    Name = "Java-Node"
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
   }
 }
 
-# Nginx Node
-resource "aws_instance" "nginx" {
-  ami                    = var.ami_id
-  instance_type          = "c7i-flex.large"
-  key_name               = var.key_name
+resource "aws_instance" "amazon_linux" {
+  count         = 3
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = var.instance_type
+  key_name      = var.key_name
+  associate_public_ip_address = true
   vpc_security_group_ids = [aws_security_group.server_sg.id]
 
   tags = {
-    Name = "Nginx-Node"
+    Name = "amazon-linux-node-${count.index + 1}"
+    OS   = "amazon-linux"
+  }
+}
+
+resource "aws_instance" "ubuntu" {
+  count         = 3
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+  key_name      = var.key_name
+  associate_public_ip_address = true
+  vpc_security_group_ids = [aws_security_group.server_sg.id]
+
+  tags = {
+    Name = "ubuntu-node-${count.index + 1}"
+    OS   = "ubuntu"
   }
 }

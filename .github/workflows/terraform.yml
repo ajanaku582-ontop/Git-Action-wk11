@@ -1,0 +1,123 @@
+name: Terraform + Ansible (Apply / Destroy)
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Terraform action"
+        required: true
+        default: apply
+        type: choice
+        options:
+          - apply
+          - destroy
+
+jobs:
+  infra:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
+      - name: Terraform Validate
+        working-directory: terraform
+        run: terraform validate
+
+      # ---------------- APPLY ----------------
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply'
+        working-directory: terraform
+        run: |
+          terraform apply -auto-approve \
+            -var="key_name=${{ secrets.EC2_KEY_NAME }}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
+      # ---------------- DESTROY ----------------
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        working-directory: terraform
+        run: |
+          terraform destroy -auto-approve \
+            -var="key_name=${{ secrets.EC2_KEY_NAME }}"
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+
+      # ---------------- OUTPUTS ----------------
+      - name: Capture Terraform Outputs
+        if: github.event.inputs.action == 'apply'
+        working-directory: terraform
+        run: |
+          echo "AMAZON_IPS=$(terraform output -json amazon_linux_ips)" >> $GITHUB_ENV
+          echo "UBUNTU_IPS=$(terraform output -json ubuntu_ips)" >> $GITHUB_ENV
+
+      - name: Display Terraform Outputs
+        if: github.event.inputs.action == 'apply'
+        run: |
+          echo "Amazon Linux IPs: $AMAZON_IPS"
+          echo "Ubuntu IPs: $UBUNTU_IPS"
+
+      # ---------------- SSH ----------------
+      - name: Setup SSH Key
+        if: github.event.inputs.action == 'apply'
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          printf "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
+
+      # ---------------- ANSIBLE ----------------
+      - name: Install Ansible & jq
+        if: github.event.inputs.action == 'apply'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible jq
+
+      - name: Generate Ansible Inventory
+        if: github.event.inputs.action == 'apply'
+        working-directory: ansible
+        run: |
+          echo "[amazon]" > inventory.ini
+          echo "$AMAZON_IPS" | jq -r '.[]' >> inventory.ini
+
+          echo "" >> inventory.ini
+          echo "[ubuntu]" >> inventory.ini
+          echo "$UBUNTU_IPS" | jq -r '.[]' >> inventory.ini
+
+      - name: Test SSH Connectivity
+        if: github.event.inputs.action == 'apply'
+        working-directory: ansible
+        run: |
+          ansible all -i inventory.ini \
+            -m ping \
+            -u ec2-user || true
+          ansible ubuntu -i inventory.ini \
+            -m ping \
+            -u ubuntu
+
+      - name: Run Ansible Playbook
+        if: github.event.inputs.action == 'apply'
+        working-directory: ansible
+        run: ansible-playbook playbook.yml
