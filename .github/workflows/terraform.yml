@@ -81,8 +81,9 @@ jobs:
         if: github.event.inputs.action == 'apply'
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/id_ed25519_second.pub
-          chmod 600 ~/.ssh/id_ed25519_second.pub
+          echo "${{ secrets.AWS_SSH_KEY }}" > ~/.ssh/ec2.pem
+          chmod 400 ~/.ssh/ec2.pem
+          
         #   printf "Host *\n  StrictHostKeyChecking no\n" >> ~/.ssh/config
 
       # ---------------- ANSIBLE ----------------
