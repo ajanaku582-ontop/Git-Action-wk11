@@ -56,7 +56,7 @@
   vars:
     web_root_map:
       amazon: /usr/share/nginx/html
-      ubuntu: /var/www/html/index.nginx-debian.html
+      ubuntu: /var/www/html
     assets_files:
       - app.js
       - styles.css
