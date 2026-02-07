@@ -1,98 +1,4 @@
-# ---
-# - name: Install and start Nginx on Amazon Linux servers
-#   hosts: amazon
-#   become: true
-#   remote_user: ec2-user
-
-#   tasks:
-#     - name: Update system
-#       yum:
-#         name: "*"
-#         state: latest
-
-#     - name: Install nginx
-#       yum:
-#         name: nginx
-#         state: present
-
-#     - name: Start and enable nginx
-#       service:
-#         name: nginx
-#         state: started
-#         enabled: yes
-
-# - name: Install and start Nginx on Ubuntu servers
-#   hosts: ubuntu
-#   become: true
-#   remote_user: ubuntu
-
-#   tasks:
-#     - name: Update apt cache
-#       apt:
-#         update_cache: yes
-
-#     - name: Install nginx
-#       apt:
-#         name: nginx
-#         state: present
-
-#     - name: Start and enable nginx
-#       service:
-#         name: nginx
-#         state: started
-#         enabled: yes
-
-#     - name: create assets folder
-#       ansible.builtin.file:
-#       path: /usr/share/nginx/html/assets
-#       state: directory
-
-#     - name: copy index file
-#       ansible.builtin.copy:
-#       src: ../Nginx-artefacts/index.html
-#       dest: /usr/share/nginx/html/index.html
-
-#     - name: list nginx html directory
-#       ansible.builtin.command: ls -ltr /usr/share/nginx/html
-#       register: nginx_ls
-
-#     - name: show nginx html files
-#       ansible.builtin.debug:
-#       var: nginx_ls.stdout
-
-#     - name: copy assets files
-#       ansible.builtin.copy:
-#       src: ../Nginx-artefacts/assets/app.js
-#       dest: /usr/share/nginx/html/assets/app.js
-  
-#     - name: copy assets files 2
-#       ansible.builtin.copy:
-#       src: ../Nginx-artefacts/assets/styles.css
-#       dest: /usr/share/nginx/html/assets/styles.css
-
 ---
-- name: Install and start Nginx on Amazon Linux servers
-  hosts: amazon
-  become: true
-  remote_user: ec2-user
-
-  tasks:
-    - name: Update system
-      yum:
-        name: "*"
-        state: latest
-
-    - name: Install nginx
-      yum:
-        name: nginx
-        state: present
-
-    - name: Start and enable nginx
-      service:
-        name: nginx
-        state: started
-        enabled: yes
-
 - name: Install and start Nginx on Ubuntu servers
   hosts: ubuntu
   become: true
@@ -112,7 +18,7 @@
       service:
         name: nginx
         state: started
-        enabled: yes
+        enabled: true
 
     - name: Create assets folder
       ansible.builtin.file:
@@ -121,9 +27,18 @@
 
     - name: Copy index file
       ansible.builtin.copy:
-      src: index.html       # relative to playbooks/files
-      dest: /usr/share/nginx/html/index.html
+        src: index.html
+        dest: /usr/share/nginx/html/index.html
 
+    - name: Copy app.js
+      ansible.builtin.copy:
+        src: assets/app.js
+        dest: /usr/share/nginx/html/assets/app.js
+
+    - name: Copy styles.css
+      ansible.builtin.copy:
+        src: assets/styles.css
+        dest: /usr/share/nginx/html/assets/styles.css
 
     - name: List nginx html directory
       ansible.builtin.command: ls -ltr /usr/share/nginx/html
@@ -132,14 +47,3 @@
     - name: Show nginx html files
       ansible.builtin.debug:
         var: nginx_ls.stdout
-
-    - name: Copy assets files
-      ansible.builtin.copy:
-      src: assets/app.js
-      dest: /usr/share/nginx/html/assets/app.js
-
-
-    - name: Copy styles.css
-      ansible.builtin.copy:
-        src:  assets/styles.css
-        dest: /usr/share/nginx/html/assets/styles.css
