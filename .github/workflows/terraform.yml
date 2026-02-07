@@ -116,15 +116,15 @@ jobs:
       #     echo "$UBUNTU_IPS" | jq -r '.[]' >> inventory.ini
 
       - name: Generate Ansible Inventory
-        if: github.event.inputs.action == 'apply'
         working-directory: ansible
         run: |
           echo "[amazon]" > inventory.ini
-          echo "$AMAZON_IPS" | jq -r '.[] | . + \" ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/key.pem\"' >> inventory.ini
+          echo "$AMAZON_IPS" | jq -r '.[] | . + " ansible_user=ec2-user ansible_ssh_private_key_file=~/.ssh/key.pem"' >> inventory.ini
 
           echo "" >> inventory.ini
           echo "[ubuntu]" >> inventory.ini
-          echo "$UBUNTU_IPS" | jq -r '.[] | . + \" ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/key.pem\"' >> inventory.ini
+          echo "$UBUNTU_IPS" | jq -r '.[] | . + " ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/key.pem"' >> inventory.ini
+
 
       - name: Test SSH Connectivity
         if: github.event.inputs.action == 'apply'
