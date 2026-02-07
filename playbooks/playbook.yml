@@ -47,6 +47,7 @@
       src: ../Nginx-artefacts/index.html
       dest: /usr/share/nginx/html/index.html
 
+
     - name: create assets folder
       ansible.builtin.file:
       path: /usr/share/nginx/html/assets
