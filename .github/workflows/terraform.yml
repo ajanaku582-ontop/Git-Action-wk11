@@ -47,7 +47,7 @@ jobs:
         working-directory: terraform
         run: |
           cat > terraform.tfvars <<EOF
-          key_name = "${{ secrets.TF_VAR_key_name }}"
+          key_name = "${{ secrets.TF_VAR_KEY_NAME }}"
           EOF
 
       # ---------------- APPLY ----------------
@@ -55,16 +55,14 @@ jobs:
         if: github.event.inputs.action == 'apply'
         working-directory: terraform
         run: |
-          terraform apply -auto-approve \
-            -var="key_name=${{ secrets.EC2_KEY_NAME }}"
+          terraform apply -auto-approve 
         
       # ---------------- DESTROY ----------------
       - name: Terraform Destroy
         if: github.event.inputs.action == 'destroy'
         working-directory: terraform
         run: |
-          terraform destroy -auto-approve \
-            -var="key_name=${{ secrets.EC2_KEY_NAME }}"
+          terraform destroy -auto-approve 
 
       # ---------------- OUTPUTS ----------------
       - name: Capture Terraform Outputs
