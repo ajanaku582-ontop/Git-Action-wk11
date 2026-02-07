@@ -118,7 +118,6 @@
       ansible.builtin.file:
         path: /usr/share/nginx/html/assets
         state: directory
-        mode: '0755'
 
     - name: Copy index file
       ansible.builtin.copy:
