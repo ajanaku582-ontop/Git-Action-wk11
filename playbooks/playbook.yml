@@ -49,7 +49,7 @@
 
     - name: copy index file
       ansible.builtin.copy:
-      src: ../Nginx-artefacts/index.html
+      path: ../Nginx-artefacts/index.html
       dest: /usr/share/nginx/html/index.html
 
     - name: copy index file
@@ -64,7 +64,6 @@
     - name: show nginx html files
       ansible.builtin.debug:
       var: nginx_ls.stdout
-
 
     - name: copy assets files
       ansible.builtin.copy:
