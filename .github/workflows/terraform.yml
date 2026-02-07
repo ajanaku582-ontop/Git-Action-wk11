@@ -43,6 +43,13 @@ jobs:
         working-directory: terraform
         run: terraform validate
 
+      - name: generate variable.tfvars
+        working-directory: terraform
+        run: |
+          cat > terraform.tfvars <<EOF
+          key_name = "${{ secrets.TF_VAR_key_name }}"
+          EOF
+
       # ---------------- APPLY ----------------
       - name: Terraform Apply
         if: github.event.inputs.action == 'apply'
@@ -81,7 +88,7 @@ jobs:
         run: |
             echo "${{ secrets.KEY_NAME }}" >> KEY_NAME.pem
             chmod 400 KEY_NAME.pem
-            
+
       # ---------------- SSH ----------------
       - name: Setup SSH Key
         if: github.event.inputs.action == 'apply'
