@@ -42,16 +42,29 @@
         state: started
         enabled: yes
 
+    - name: create assets folder
+      ansible.builtin.file:
+      path: /usr/share/nginx/html/assets
+      state: directory
+
     - name: copy index file
       ansible.builtin.copy:
       src: ../Nginx-artefacts/index.html
       dest: /usr/share/nginx/html/index.html
 
+    - name: copy index file
+      ansible.builtin.copy:
+      src: ../Nginx-artefacts/index.html
+      dest: /usr/share/nginx/html/index.html
 
-    - name: create assets folder
-      ansible.builtin.file:
-      path: /usr/share/nginx/html/assets
-      state: directory
+    - name: list nginx html directory
+      ansible.builtin.command: ls -ltr /usr/share/nginx/html
+      register: nginx_ls
+
+    - name: show nginx html files
+      ansible.builtin.debug:
+      var: nginx_ls.stdout
+
 
     - name: copy assets files
       ansible.builtin.copy:
