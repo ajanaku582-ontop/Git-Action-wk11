@@ -49,11 +49,6 @@
 
     - name: copy index file
       ansible.builtin.copy:
-      path: ../Nginx-artefacts/index.html
-      dest: /usr/share/nginx/html/index.html
-
-    - name: copy index file
-      ansible.builtin.copy:
       src: ../Nginx-artefacts/index.html
       dest: /usr/share/nginx/html/index.html
 
