@@ -1,3 +1,4 @@
+---
 name: Terraform + Ansible (Apply / Destroy)
 
 on:
@@ -76,6 +77,11 @@ jobs:
           echo "Amazon Linux IPs: $AMAZON_IPS"
           echo "Ubuntu IPs: $UBUNTU_IPS"
 
+      - name: copy pem file
+        run: |
+            echo "${{ secrets.KEY_NAME }}" >> KEY_NAME.pem
+            chmod 400 KEY_NAME.pem
+            
       # ---------------- SSH ----------------
       - name: Setup SSH Key
         if: github.event.inputs.action == 'apply'
