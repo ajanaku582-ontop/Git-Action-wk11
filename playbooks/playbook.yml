@@ -122,9 +122,9 @@
 
     - name: Copy index file
       ansible.builtin.copy:
-        src: ../Nginx-artefacts/index.html
-        dest: /usr/share/nginx/html/index.html
-        mode: '0644'
+      src: index.html       # relative to playbooks/files
+      dest: /usr/share/nginx/html/index.html
+
 
     - name: List nginx html directory
       ansible.builtin.command: ls -ltr /usr/share/nginx/html
@@ -134,14 +134,13 @@
       ansible.builtin.debug:
         var: nginx_ls.stdout
 
-    - name: Copy app.js
+    - name: Copy assets files
       ansible.builtin.copy:
-        src: ../Nginx-artefacts/assets/app.js
-        dest: /usr/share/nginx/html/assets/app.js
-        mode: '0644'
+      src: assets/app.js
+      dest: /usr/share/nginx/html/assets/app.js
+
 
     - name: Copy styles.css
       ansible.builtin.copy:
-        src: ../Nginx-artefacts/assets/styles.css
+        src:  assets/styles.css
         dest: /usr/share/nginx/html/assets/styles.css
-        mode: '0644'
