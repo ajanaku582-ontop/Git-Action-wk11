@@ -101,9 +101,15 @@
         state: directory
         mode: '0755'
 
+    # - name: Copy index.html
+    #   ansible.builtin.copy:
+    #     src: index.html
+    #     dest: "{{ web_root }}/index.html"
+    #     mode: '0644'
+
     - name: Copy index.html
-      ansible.builtin.copy:
-        src: index.html
+      ansible.builtin.template:
+        src: index.html.j2
         dest: "{{ web_root }}/index.html"
         mode: '0644'
 
