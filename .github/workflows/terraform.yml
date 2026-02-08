@@ -145,4 +145,4 @@ jobs:
         if: github.event.inputs.action == 'apply'
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
-        run: ansible-playbook -i ansible/inventory.ini playbooks/playbook.yml -vvvv
+        run: ansible-playbook -i ansible/inventory.ini playbooks/playbook.yml -e site_name=Trinity-Stores -e admin_path=Jewelry-Section
